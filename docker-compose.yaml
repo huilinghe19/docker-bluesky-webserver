@@ -1,0 +1,38 @@
+version: "3.7"
+services:
+  mongo:
+    env_file: .env
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+  redis:
+    env_file: .env
+    image: redis:latest
+    ports:
+      - "6379:6379"
+  re-manager:
+    env_file: .env
+    build: ./Docker/re-manager
+    ports:
+      - "60615:60615"
+      - "60625:60625"
+    depends_on:
+      - "redis"
+      - "zmq-proxy"
+  zmq-proxy:
+    env_file: .env
+    build: ./Docker/zmq-proxy
+    ports:
+      - "5567:5567"
+      - "5568:5568"
+  bluesky-httpserver:
+    env_file: .env
+    build:
+      context: ./
+      dockerfile: ./Docker/BlueskyQueueServer
+    ports:
+      - "60610:60610"
+    volumes:
+      - ./config_single_user.yml:/config_single_user.yml
+    depends_on:
+      - "re-manager"
